@@ -4,9 +4,9 @@
   "description": "A minimalist web app for mood tracking with local storage and PWA capabilities",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
-    "build:staging": "tsc && vite build --mode staging",
-    "build:prod": "tsc && vite build --mode production",
+    "build": "vite build",
+    "build:staging": "vite build --mode staging",
+    "build:prod": "vite build --mode production",
     "build:analyze": "npm run build:prod && open dist/stats.html",
     "start": "node server.js",
     "railway:build": "npm run build:prod",
