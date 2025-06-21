@@ -1,0 +1,7 @@
+dist
+node_modules
+coverage
+.env*
+*.log
+public/sw.js
+public/workbox-*.js

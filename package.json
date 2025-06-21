@@ -1,0 +1,61 @@
+{
+  "name": "mood-snapshot",
+  "version": "1.0.0",
+  "description": "A minimalist web app for mood tracking with local storage and PWA capabilities",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "build:staging": "tsc && vite build --mode staging",
+    "build:prod": "tsc && vite build --mode production",
+    "build:analyze": "npm run build:prod && open dist/stats.html",
+    "start": "node server.js",
+    "railway:build": "npm run build:prod",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:e2e": "playwright test",
+    "lint": "eslint . --ext ts,js,html --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --ext ts,js,html --fix",
+    "format": "prettier --write .",
+    "type-check": "tsc --noEmit",
+    "prepare": "husky install"
+  },
+  "dependencies": {
+    "chart.js": "^4.4.0",
+    "idb": "^8.0.0",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "vite-plugin-pwa": "^0.17.0",
+    "@vitest/ui": "^1.0.0",
+    "eslint": "^8.54.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-html": "^7.1.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.1.0",
+    "typescript": "^5.3.0",
+    "vite": "^5.0.0",
+    "rollup-plugin-visualizer": "^5.12.0",
+    "vitest": "^1.0.0",
+    "workbox-cli": "^7.0.0",
+    "workbox-window": "^7.0.0"
+  },
+  "lint-staged": {
+    "*.{js,ts,html}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{css,md,json}": [
+      "prettier --write"
+    ]
+  },
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

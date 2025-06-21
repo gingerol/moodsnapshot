@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # Development environment
+  mood-snapshot-dev:
+    build:
+      context: .
+      target: development
+    ports:
+      - "4000:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - VITE_ENV=development
+    command: npm run dev -- --host 0.0.0.0
+    profiles:
+      - dev
+
+  # Production environment
+  mood-snapshot-prod:
+    build:
+      context: .
+      target: production
+    ports:
+      - "80:80"
+    environment:
+      - NODE_ENV=production
+    profiles:
+      - prod
+
+  # Testing environment
+  mood-snapshot-test:
+    build:
+      context: .
+      target: development
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=test
+      - VITE_ENV=test
+    command: npm run test
+    profiles:
+      - test
+
+networks:
+  default:
+    name: mood-snapshot-network
