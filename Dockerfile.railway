@@ -18,8 +18,8 @@ RUN npm run build:prod
 # Production stage
 FROM nginx:alpine
 
-# Install envsubst for environment variable substitution
-RUN apk add --no-cache gettext
+# Install debugging tools
+RUN apk add --no-cache gettext netstat-nat
 
 # Copy built app to nginx
 COPY --from=builder /app/dist /usr/share/nginx/html
@@ -30,19 +30,42 @@ COPY nginx.simple.conf /etc/nginx/nginx.conf
 # Set default port for Railway
 ENV PORT=8080
 
-# Create startup script with dynamic port replacement and debugging
+# Create comprehensive debugging startup script
 RUN echo '#!/bin/sh' > /startup.sh && \
+    echo 'set -e' >> /startup.sh && \
+    echo 'echo "=== RAILWAY DEPLOYMENT DEBUG ==="' >> /startup.sh && \
     echo 'echo "Environment variables:"' >> /startup.sh && \
-    echo 'env | grep -E "(PORT|RAILWAY)"' >> /startup.sh && \
-    echo 'echo "Starting with PORT=$PORT"' >> /startup.sh && \
+    echo 'env | grep -E "(PORT|RAILWAY)" || echo "No PORT/RAILWAY vars found"' >> /startup.sh && \
+    echo 'echo "Using PORT=${PORT:-8080}"' >> /startup.sh && \
     echo 'if [ -z "$PORT" ]; then export PORT=8080; fi' >> /startup.sh && \
-    echo 'echo "Using PORT=$PORT"' >> /startup.sh && \
-    echo 'sed -i "s/listen 0.0.0.0:8080;/listen 0.0.0.0:$PORT;/" /etc/nginx/nginx.conf' >> /startup.sh && \
-    echo 'echo "Nginx config listen directive:"' >> /startup.sh && \
+    echo '' >> /startup.sh && \
+    echo 'echo "=== FILE SYSTEM CHECK ==="' >> /startup.sh && \
+    echo 'echo "Contents of /usr/share/nginx/html:"' >> /startup.sh && \
+    echo 'ls -la /usr/share/nginx/html/' >> /startup.sh && \
+    echo 'echo "index.html exists:" && test -f /usr/share/nginx/html/index.html && echo "YES" || echo "NO"' >> /startup.sh && \
+    echo 'echo "index.html size:" && wc -c /usr/share/nginx/html/index.html || echo "File not found"' >> /startup.sh && \
+    echo '' >> /startup.sh && \
+    echo 'echo "=== NGINX CONFIG REPLACEMENT ==="' >> /startup.sh && \
+    echo 'echo "Before PORT replacement:"' >> /startup.sh && \
     echo 'grep "listen" /etc/nginx/nginx.conf' >> /startup.sh && \
-    echo 'echo "Testing nginx config:"' >> /startup.sh && \
-    echo 'nginx -t' >> /startup.sh && \
-    echo 'nginx -g "daemon off;"' >> /startup.sh && \
+    echo 'sed -i "s/listen 0.0.0.0:8080;/listen 0.0.0.0:$PORT;/" /etc/nginx/nginx.conf' >> /startup.sh && \
+    echo 'echo "After PORT replacement:"' >> /startup.sh && \
+    echo 'grep "listen" /etc/nginx/nginx.conf' >> /startup.sh && \
+    echo '' >> /startup.sh && \
+    echo 'echo "=== NGINX CONFIG VALIDATION ==="' >> /startup.sh && \
+    echo 'nginx -t 2>&1 || { echo "Nginx config test FAILED"; cat /etc/nginx/nginx.conf; exit 1; }' >> /startup.sh && \
+    echo 'echo "Nginx config test PASSED"' >> /startup.sh && \
+    echo '' >> /startup.sh && \
+    echo 'echo "=== STARTING NGINX ==="' >> /startup.sh && \
+    echo 'echo "Starting nginx on port $PORT..."' >> /startup.sh && \
+    echo 'nginx -g "daemon off;" &' >> /startup.sh && \
+    echo 'NGINX_PID=$!' >> /startup.sh && \
+    echo 'sleep 2' >> /startup.sh && \
+    echo 'echo "Nginx process status:"' >> /startup.sh && \
+    echo 'ps aux | grep nginx || echo "No nginx processes found"' >> /startup.sh && \
+    echo 'echo "Port listening status:"' >> /startup.sh && \
+    echo 'netstat -tlnp | grep :$PORT || echo "Port $PORT not listening"' >> /startup.sh && \
+    echo 'wait $NGINX_PID' >> /startup.sh && \
     chmod +x /startup.sh
 
 # Expose port
