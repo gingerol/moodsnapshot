@@ -30,12 +30,18 @@ COPY nginx.simple.conf /etc/nginx/nginx.conf
 # Set default port for Railway
 ENV PORT=8080
 
-# Create startup script with dynamic port replacement
+# Create startup script with dynamic port replacement and debugging
 RUN echo '#!/bin/sh' > /startup.sh && \
+    echo 'echo "Environment variables:"' >> /startup.sh && \
+    echo 'env | grep -E "(PORT|RAILWAY)"' >> /startup.sh && \
     echo 'echo "Starting with PORT=$PORT"' >> /startup.sh && \
+    echo 'if [ -z "$PORT" ]; then export PORT=8080; fi' >> /startup.sh && \
+    echo 'echo "Using PORT=$PORT"' >> /startup.sh && \
     echo 'sed -i "s/listen 8080;/listen $PORT;/" /etc/nginx/nginx.conf' >> /startup.sh && \
-    echo 'echo "Generated nginx config:"' >> /startup.sh && \
-    echo 'cat /etc/nginx/nginx.conf | grep -A 5 -B 5 listen' >> /startup.sh && \
+    echo 'echo "Nginx config listen directive:"' >> /startup.sh && \
+    echo 'grep "listen" /etc/nginx/nginx.conf' >> /startup.sh && \
+    echo 'echo "Testing nginx config:"' >> /startup.sh && \
+    echo 'nginx -t' >> /startup.sh && \
     echo 'nginx -g "daemon off;"' >> /startup.sh && \
     chmod +x /startup.sh
 
