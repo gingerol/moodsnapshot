@@ -37,7 +37,7 @@ RUN echo '#!/bin/sh' > /startup.sh && \
     echo 'echo "Starting with PORT=$PORT"' >> /startup.sh && \
     echo 'if [ -z "$PORT" ]; then export PORT=8080; fi' >> /startup.sh && \
     echo 'echo "Using PORT=$PORT"' >> /startup.sh && \
-    echo 'sed -i "s/listen 8080;/listen $PORT;/" /etc/nginx/nginx.conf' >> /startup.sh && \
+    echo 'sed -i "s/listen 0.0.0.0:8080;/listen 0.0.0.0:$PORT;/" /etc/nginx/nginx.conf' >> /startup.sh && \
     echo 'echo "Nginx config listen directive:"' >> /startup.sh && \
     echo 'grep "listen" /etc/nginx/nginx.conf' >> /startup.sh && \
     echo 'echo "Testing nginx config:"' >> /startup.sh && \
