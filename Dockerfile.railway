@@ -1,4 +1,4 @@
-# Railway Dockerfile - Simple Static Server
+# Railway Dockerfile - Express Server
 FROM node:20-alpine AS builder
 
 WORKDIR /app
@@ -7,18 +7,21 @@ RUN npm ci
 COPY . .
 RUN npm run build:prod
 
-# Production stage with simple static server
+# Production stage
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Install a simple static file server
-RUN npm install -g serve
+# Copy package files and install production dependencies
+COPY package*.json ./
+RUN npm ci --only=production
 
-# Copy built files
+# Copy server and built files
+COPY server.js ./
 COPY --from=builder /app/dist ./dist
 
-# Expose port and start server
+# Expose port
 EXPOSE $PORT
 
-CMD ["sh", "-c", "serve -s dist -l ${PORT:-8080}"]
+# Start the Express server
+CMD ["npm", "start"]
