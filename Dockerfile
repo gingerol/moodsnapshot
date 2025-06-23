@@ -1,52 +1,27 @@
-# Multi-stage Dockerfile for Mood Snapshot Web App
+# Railway Dockerfile - Express Server
+FROM node:20-alpine AS builder
 
-# Development stage
-FROM node:20-alpine AS development
 WORKDIR /app
-
-# Install dependencies
 COPY package*.json ./
 RUN npm ci
-
-# Copy source code
 COPY . .
-
-# Expose development port
-EXPOSE 5173
-
-# Development command
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
-
-# Build stage
-FROM node:20-alpine AS build
-WORKDIR /app
-
-# Install dependencies
-COPY package*.json ./
-RUN npm ci
-
-# Copy source code and build
-COPY . .
-RUN npm run build
+RUN npm run build:prod
 
 # Production stage
-FROM nginx:alpine AS production
+FROM node:20-alpine
 
-# Copy built assets from build stage
-COPY --from=build /app/dist /usr/share/nginx/html
+WORKDIR /app
 
-# Copy custom nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy package files and install production dependencies
+COPY package*.json ./
+RUN npm ci --only=production
 
-# Add security headers and PWA support
-RUN echo 'server {' > /etc/nginx/conf.d/security.conf && \
-    echo '    add_header X-Frame-Options "SAMEORIGIN" always;' >> /etc/nginx/conf.d/security.conf && \
-    echo '    add_header X-XSS-Protection "1; mode=block" always;' >> /etc/nginx/conf.d/security.conf && \
-    echo '    add_header X-Content-Type-Options "nosniff" always;' >> /etc/nginx/conf.d/security.conf && \
-    echo '    add_header Referrer-Policy "no-referrer-when-downgrade" always;' >> /etc/nginx/conf.d/security.conf && \
-    echo '    add_header Content-Security-Policy "default-src '\''self'\''; script-src '\''self'\''; style-src '\''self'\'' '\''unsafe-inline'\''; img-src '\''self'\'' data:; font-src '\''self'\''; connect-src '\''self'\''; manifest-src '\''self'\'';" always;' >> /etc/nginx/conf.d/security.conf && \
-    echo '}' >> /etc/nginx/conf.d/security.conf
+# Copy server and built files
+COPY server.js ./
+COPY --from=builder /app/dist ./dist
 
-EXPOSE 80
+# Expose port
+EXPOSE $PORT
 
-CMD ["nginx", "-g", "daemon off;"]
+# Start the Express server
+CMD ["npm", "start"]
