@@ -1,0 +1,25 @@
+# Simple Railway Dockerfile
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build:prod
+
+# Production stage
+FROM nginx:alpine
+
+# Copy built files
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Copy minimal nginx config
+COPY nginx.minimal.conf /etc/nginx/nginx.conf
+
+# Simple startup script
+RUN echo 'sed -i "s/listen 8080;/listen $PORT;/" /etc/nginx/nginx.conf && nginx -g "daemon off;"' > /start.sh && \
+    chmod +x /start.sh
+
+EXPOSE $PORT
+
+CMD ["/start.sh"]
