@@ -1,0 +1,8 @@
+node_modules
+.git
+*.md
+tests
+.eslintrc.json
+.prettierrc
+husky
+lint-staged
